@@ -1,4 +1,4 @@
-# -AI-
+# AI develop website (use chinese)
 目录结构及其作用
 \var
 \www
