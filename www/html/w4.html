@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub | yourname</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A6C8C',
+                        secondary: '#7B8EA5',
+                        dark: '#2C3E50',
+                        light: '#E8EDF2'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 4px 12px rgba(44, 62, 80, 0.2);
+            }
+            .bg-gradient-blue-gray {
+                background: linear-gradient(135deg, #4A6C8C 0%, #7B8EA5 100%);
+            }
+            .card-shadow {
+                box-shadow: 0 10px 30px rgba(44, 62, 80, 0.15);
+            }
+        }
+    </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F5F7FA;
+        }
+        
+        .back-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            transform: translateX(-3px);
+        }
+        .github-link {
+            transition: all 0.3s ease;
+        }
+        .github-link:hover {
+            color: #4A6C8C;
+            transform: scale(1.08);
+        }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8">
+
+<!-- 统一顶部导航 → 当前GitHub页 = 刷新按钮 -->
+<div class="max-w-lg mx-auto mb-6 flex flex-wrap justify-center gap-2 text-sm">
+    <a href="w2.html" class="px-3 py-1 bg-light text-primary rounded">微信</a>
+    <a href="w3.html" class="px-3 py-1 bg-light text-primary rounded">Steam</a>
+    <span onclick="location.reload()" class="px-3 py-1 bg-primary text-white rounded cursor-pointer">刷新</span>
+    <a href="w5.html" class="px-3 py-1 bg-light text-primary rounded">邮箱</a>
+    <a href="w6.html" class="px-3 py-1 bg-light text-primary rounded">作品</a>
+</div>
+
+<div class="w-full max-w-lg bg-white rounded-2xl card-shadow overflow-hidden mx-auto">
+    <div class="h-2 bg-gradient-blue-gray w-full"></div>
+    <div class="py-12 px-8 text-center">
+        <a href="/w1.html" class="back-btn flex items-center gap-2 text-primary mb-8">
+            <i class="fa fa-arrow-left"></i>
+            <span>返回主页</span>
+        </a>
+        <i class="fa fa-github text-5xl text-primary mb-6"></i>
+        <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-dark mb-4 text-shadow">
+            GitHub
+        </h1>
+        
+        <a href="https://github.com/github id" 
+           target="_blank" 
+           class="github-link text-secondary text-xl tracking-wider font-medium no-underline">
+            your github name
+        </a>
+    </div>
+    <div class="py-4 bg-light text-center text-sm text-secondary">
+        © 2026 your name | All Rights Reserved
+    </div>
+</div>
+<script>
+// 在线人数统计（所有页面都生效）
+function updateOnline() {
+    fetch('/online.php').catch(err => {});
+}
+
+// 页面加载时上报在线
+updateOnline();
+
+// 定时心跳（保持在线）
+setInterval(updateOnline, 5000);
+
+// 关闭页面时离开
+window.addEventListener('beforeunload', () => {
+    navigator.sendBeacon('/online.php?act=leave');
+});
+</script>
+</body>
+</html>
+

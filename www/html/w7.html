@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>WOURLD -1| your name</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A6C8C',
+                        secondary: '#7B8EA5',
+                        dark: '#2C3E50',
+                        light: '#E8EDF2'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .bg-gradient-blue-gray {
+                background: linear-gradient(135deg, #4A6C8C 0%, #7B8EA5 100%);
+            }
+        }
+    </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300,400,500,700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F5F7FA;
+            overflow-x: hidden;
+        }
+        .back-btn {
+            transition: all 0.3s ease;
+        }
+        .back-btn:hover {
+            transform: translateX(-3px);
+        }
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(44, 62, 80, 0.15);
+            max-width: 100%;
+            height: auto;
+        }
+        .touch-btn {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background-color: #4A6C8C;
+            color: white;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        .touch:active {
+            background-color: #2C3E50;
+        }
+        .start-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 16px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 999px;
+            background-color: #4A6C8C;
+            color: white;
+            border: none;
+            box-shadow: 0 8px 20px rgba(44, 62, 80, 0.25);
+            transition: all 0.3s ease;
+            z-index: 10;
+            pointer-events: auto;
+        }
+        .start-btn:hover {
+            background-color: #2C3E50;
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+        /* 排行榜弹窗 */
+        .rank-mask{position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:50;display:flex;align-items:center;justify-content:center;}
+        .rank-pop{width:90%;max-width:400px;background:#fff;border-radius:16px;padding:20px;max-height:70vh;overflow:auto;}
+        /* 距离米数显示 */
+        .distance-num {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 8px;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8">
+
+<!-- 顶部导航 + 排行榜 + 隐藏入口 -->
+<div class="max-w-lg mx-auto mb-6 flex flex-wrap justify-center gap-2 text-sm">
+    <a href="w2.html" class="px-3 py-1 bg-light text-primary rounded">微信</a>
+    <a href="w3.html" class="px-3 py-1 bg-light text-primary rounded">Steam</a>
+    <a href="w4.html" class="px-3 py-1 bg-light text-primary rounded">Github</a>
+    <a href="w5.html" class="px-3 py-1 bg-light text-primary rounded">邮箱</a>
+    <a href="w6.html" class="px-3 py-1 bg-light text-primary rounded">作品</a>
+    <span onclick="location.reload()" class="px-3 py-1 bg-primary text-white rounded cursor-pointer">刷新</span>
+    <button onclick="openRank()" class="px-3 py-1 bg-primary text-white rounded">排行榜</button>
+    <a id="w10Link" href="x9s7k2p5.html" class="px-3 py-1 bg-pink-200 text-pink-600 rounded hidden">(^～^)</a>
+</div>
+
+<!-- 排行榜弹窗 -->
+<div id="rankMask" class="rank-mask hidden" onclick="closeRank(event)">
+    <div class="rank-pop" onclick="event.stopPropagation()">
+        <div class="text-xl font-bold text-center mb-4 text-primary">🏆 全服排行榜</div>
+        <div id="rankList" class="space-y-2 text-sm"></div>
+        
+        <button onclick="syncHighScore()" class="w-full mt-3 py-2 bg-green-500 text-white rounded">
+            同步当前最高分
+        </button>
+        
+        <button onclick="closeRank()" class="w-full mt-4 py-2 bg-primary text-white rounded">关闭</button>
+    </div>
+</div>
+
+<!-- 入榜提交弹窗 -->
+<div id="submitBox" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 hidden">
+    <div class="bg-white p-5 rounded-xl w-80">
+        <div class="font-bold text-center mb-3">🏅 达到10000分！加入排行榜</div>
+        <input id="userName" maxlength="8" placeholder="输入你的名字" class="border rounded w-full p-2 text-center mb-3">
+        <div class="flex gap-2">
+            <button onclick="saveRank()" class="flex-1 bg-primary text-white py-2 rounded">确认提交</button>
+            <button onclick="closeSubmit()" class="flex-1 bg-gray-200 py-2 rounded">取消</button>
+        </div>
+    </div>
+</div>
+
+<div class="w-full max-w-4xl bg-white rounded-2xl overflow-hidden relative mx-auto">
+    <div class="h-2 bg-gradient-blue-gray w-full"></div>
+    <div class="py-6 px-6 relative">
+        <a href="/w1.html" class="back-btn flex items-center gap-2 text-primary mb-4">
+            <i class="fa fa-arrow-left"></i>
+            <span>返回主页</span>
+        </a>
+
+        <!-- 距离米数显示 -->
+        <div id="distanceShow" class="distance-num hidden">0 米</div>
+
+        <button id="startBtn" class="start-btn">点击开始 / 空格开始</button>
+
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+        
+        <div id="tipText" class="text-center mt-2 text-secondary text-sm">加载提示中...</div>
+        
+        <div class="text-center mb-1 text-primary font-bold text-lg">分数：<span id="score">0</span></div>
+        <div class="text-center mb-6 text-secondary font-bold text-md">最高分：<span id="highScore">0</span></div>
+
+        <div class="flex justify-center">
+            <button id="btnJump" class="touch-btn"><i class="fa fa-arrow-up"></i></button>
+        </div>
+    </div>
+    <div class="py-3 bg-light text-center text-sm text-secondary">© 2026 your name | 隐藏关卡</div>
+</div>
+
+<script>
+    // 手动同步最高分到排行榜
+    function syncHighScore() {
+        let name = localStorage.getItem("playerName");
+        let high = parseInt(localStorage.getItem("highScore")) || 0;
+
+        if (!name) {
+            alert("请先玩到10000分并提交一次设置昵称！");
+            return;
+        }
+        if (high <= 0) {
+            alert("暂无有效最高分");
+            return;
+        }
+
+        fetch("submit.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: name, score: high })
+        })
+        .then(res => res.json())
+        .then(d => {
+            alert("同步成功！\n昵称：" + name + "\n最高分：" + high);
+            loadRank();
+        })
+        .catch(() => {
+            alert("同步失败，请检查文件权限");
+        });
+    }
+
+    // 提示轮换
+    const tips = [
+        "顶和踩都能肘死小怪",
+        "长按跳得更高",
+        "正面遇上怪是肘不过的",
+        "10000分有惊喜",
+        "金币五十怪一百",
+        "超过10000分还能入榜"
+    ];
+    let tipIdx = 0;
+    const tipEl = document.getElementById("tipText");
+    function swapTip() { tipEl.innerText = tips[tipIdx]; tipIdx = (tipIdx + 1) % tips.length; }
+    setInterval(swapTip, 3500); swapTip();
+
+    let highScore = localStorage.getItem("highScore") ? parseInt(localStorage.getItem("highScore")) : 0;
+    const highEl = document.getElementById("highScore");
+    const w10Link = document.getElementById("w10Link");
+    highEl.innerText = highScore;
+    if (highScore >= 10000) w10Link.classList.remove("hidden");
+
+    const rankMask = document.getElementById("rankMask");
+    const rankList = document.getElementById("rankList");
+    const submitBox = document.getElementById("submitBox");
+    const userName = document.getElementById("userName");
+    let lastSubmitScore = localStorage.getItem("lastSubmit") || 0;
+
+    function openRank() { rankMask.classList.remove("hidden"); loadRank(); }
+    function closeRank(e) { if(e && e.target!==rankMask) return; rankMask.classList.add("hidden"); }
+    function closeSubmit() { submitBox.classList.add("hidden"); }
+
+    function loadRank() {
+        fetch("rank.txt").then(r=>r.text()).then(txt=>{
+            let lines = txt.trim().split("\n").filter(l=>l.includes("|"));
+            let list = [];
+            lines.forEach(line=>{ let [n,s] = line.split("|"); list.push({name:n,score:parseInt(s)}); });
+            list.sort((a,b)=>b.score-a.score);
+            let html = "";
+            list.forEach((item,i)=>{ html+=`<div class="flex justify-between border-b pb-1"><span>${i+1}. ${item.name}</span><span class="font-bold">${item.score}分</span></div>`; });
+            rankList.innerHTML = html || "<div class='text-center text-gray-400'>暂无数据</div>";
+        });
+    }
+
+    function checkHighScore() {
+        if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("highScore", highScore);
+            highEl.innerText = highScore;
+            if (highScore >= 10000) w10Link.classList.remove("hidden");
+        }
+        if (score >= 10000 && score > lastSubmitScore) {
+            submitBox.classList.remove("hidden");
+            if (localStorage.getItem("playerName")) userName.value = localStorage.getItem("playerName");
+        }
+    }
+
+    function saveRank() {
+        let name = userName.value.trim();
+        if (!name) { alert("请输入名字"); return; }
+        localStorage.setItem("playerName", name);
+        localStorage.setItem("lastSubmit", score);
+        fetch("submit.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, score })
+        }).then(()=>{ alert("提交成功！"); closeSubmit(); loadRank(); });
+    }
+
+    // 游戏核心代码
+    const COLOR = {
+        primary: '#4A6C8C',
+        secondary: '#7B8EA5',
+        dark: '#2C3E50',
+        light: '#E8EDF2',
+        ground: '#5A7B9A',
+        coin: '#F5C518',
+        enemy: '#e53e3e'
+    };
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const startBtn = document.getElementById('startBtn');
+    const distanceShow = document.getElementById('distanceShow');
+
+    let gameStarted = false;
+    let gameOver = false;
+    let score = 0;
+    
+    // 速度升级系统
+    const BASE_SPEED = 3;          
+    let gameSpeed = BASE_SPEED;    
+    let speedMultiplier = 1;       
+    let gameTimer = 0;             
+
+    const player = {
+        x: 120, y: 300, width: 32, height: 40, velY: 0,
+        jumpPower: -14, minJumpPower: -6, gravity: 0.5, grounded: false, jumpHeld: false
+    };
+
+    let platforms = [], enemies = [], coins = [];
+
+    function initGround() {
+        platforms.push({ x: 0, y: 360, w: 800, h: 40, isGround: true });
+        platforms.push({ x: 800, y: 360, w: 800, h: 40, isGround: true });
+    }
+
+    function generatePlatform(startX) {
+        if (startX < 0) return;
+        const w = 80 + Math.random() * 120;
+        const y = 260 + Math.random() * 60;
+        const plat = { x: startX, y: y, w: w, h: 20, isGround: false };
+        platforms.push(plat);
+
+        if (w > 110 && Math.random() > 0.55) {
+            let enemyX;
+            if (w < 160) { enemyX = startX + w - 28; } else { enemyX = startX + w/2 + Math.random() * (w/2 - 28); }
+            enemies.push({ x: enemyX, y: y - 30, w: 28, h: 30 });
+        }
+        if (Math.random() > 0.65) {
+            coins.push({ x: startX + 20 + Math.random() * (w - 40), y: y - 12, r: 10 });
+        }
+    }
+
+    function preSpawnGroundStuff() {
+        const grounds = platforms.filter(p => p.isGround);
+        grounds.forEach(ground => {
+            if (ground.x > canvas.width * 0.8) {
+                if (Math.random() > 0.75) enemies.push({ x: ground.x + Math.random() * (ground.w - 50), y: ground.y - 30, w: 28, h: 30 });
+                if (Math.random() > 0.65) coins.push({ x: ground.x + Math.random() * ground.w, y: ground.y - 12, r: 10 });
+            }
+        });
+    }
+
+    function resetGame() {
+        player.y = 300; player.velY = 0; score = 0; scoreEl.innerText = score;
+        enemies = []; coins = []; platforms = []; initGround();
+        
+        gameTimer = 0;
+        speedMultiplier = 1;
+        gameSpeed = BASE_SPEED * speedMultiplier;
+
+        let lastX = 400;
+        for (let i = 0; i < 15; i++) {
+            generatePlatform(lastX);
+            const plats = platforms.filter(p => !p.isGround);
+            const rightmost = plats.length ? Math.max(...plats.map(p => p.x + p.w)) : 0;
+            lastX = rightmost + 180 + Math.random() * 120;
+        }
+
+        preSpawnGroundStuff();
+        enemies = enemies.filter(e => e.x > canvas.width);
+        coins = coins.filter(c => c.x > canvas.width);
+        gameOver = false;
+
+        // 重置距离显示
+        distanceShow.innerText = "0 米";
+        distanceShow.classList.add("hidden");
+    }
+
+    function startGame() { 
+        gameStarted = true; 
+        startBtn.style.display = 'none'; 
+        resetGame(); 
+        distanceShow.classList.remove("hidden");
+        startGameTimer();
+    }
+    function gameEnd() { 
+        gameOver = true; 
+        gameStarted = false; 
+        startBtn.style.display = 'block'; 
+        distanceShow.classList.add("hidden");
+        checkHighScore();
+        stopGameTimer();
+    }
+
+    function jumpPress() {
+        if (!gameStarted || gameOver) return;
+        if (player.grounded) { player.velY = player.jumpPower; player.grounded = false; }
+        player.jumpHeld = true;
+    }
+    function jumpRelease() { if (player.velY < player.minJumpPower) player.velY = player.minJumpPower; player.jumpHeld = false; }
+
+    startBtn.onclick = function() { if (!gameStarted) startGame(); };
+    document.addEventListener('keydown', e => { if (e.code === 'Space') { e.preventDefault(); gameStarted ? jumpPress() : startGame(); } });
+    document.addEventListener('keyup', e => { if (e.code === 'Space') jumpRelease(); });
+
+    const btnJump = document.getElementById('btnJump');
+    btnJump.addEventListener('touchstart', e => { e.preventDefault(); jumpPress(); });
+    btnJump.addEventListener('touchend', e => { e.preventDefault(); jumpRelease(); });
+
+    // 游戏计时器 每1秒执行
+    let gameInterval;
+    function startGameTimer() {
+        clearInterval(gameInterval);
+        gameInterval = setInterval(() => {
+            if (!gameStarted || gameOver) return;
+            gameTimer++;
+
+            // 更新距离：秒数 * 3 米
+            let dis = gameTimer * 3;
+            distanceShow.innerText = `${dis} 米`;
+            
+            // 每30秒加分+提速
+            if (gameTimer % 30 === 0) {
+                score += 200;
+                scoreEl.innerText = score;
+                
+                if (speedMultiplier < 4) {
+                    speedMultiplier *= 1.2;
+                    if (speedMultiplier > 4) speedMultiplier = 4;
+                    gameSpeed = BASE_SPEED * speedMultiplier;
+                }
+            }
+        }, 1000);
+    }
+    function stopGameTimer() {
+        clearInterval(gameInterval);
+    }
+
+    function gameLoop() { if (gameStarted && !gameOver) update(); render(); requestAnimationFrame(gameLoop); }
+
+    function update() {
+        player.velY += player.gravity; player.y += player.velY;
+        platforms.forEach(p => p.x -= gameSpeed); enemies.forEach(e => e.x -= gameSpeed); coins.forEach(c => c.x -= gameSpeed);
+
+        const grounds = platforms.filter(p => p.isGround);
+        grounds.forEach(g => { if (g.x + g.w < 0) { const maxX = Math.max(...grounds.map(x => x.x)); g.x = maxX + g.w - 10; } });
+
+        const plats = platforms.filter(p => !p.isGround);
+        const rightmost = plats.length ? Math.max(...plats.map(p => p.x + p.w)) : 0;
+        if (rightmost < canvas.width + 400) generatePlatform(rightmost + 180 + Math.random() * 120);
+
+        platforms = platforms.filter(p => p.isGround || p.x + p.w > -100);
+        enemies = enemies.filter(e => e.x + e.w > -100);
+        coins = coins.filter(c => c.x + c.r > -100);
+
+        player.grounded = false;
+        for (const p of platforms) {
+            if (player.x < p.x + p.w && player.x + player.width > p.x && player.y + player.height >= p.y && player.y + player.height <= p.y + p.h + 8 && player.velY >= 0) {
+                player.y = p.y - player.height; player.velY = 0; player.grounded = true;
+            }
+        }
+
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const e = enemies[i];
+            const hit = (player.x < e.x + e.w && player.x + player.width > e.x && player.y < e.y + e.h && player.y + player.height > e.y);
+            if (hit) {
+                if (player.y + player.height <= e.y + e.h / 2 && player.velY > 0) { enemies.splice(i,1); player.velY=-8; score+=100; scoreEl.innerText=score; }
+                else if (player.y >= e.y + e.h / 2 && player.velY < 0) { enemies.splice(i,1); player.velY=6; score+=100; scoreEl.innerText=score; }
+                else { gameEnd(); return; }
+            }
+        }
+
+        for (let i = coins.length - 1; i >= 0; i--) {
+            const c = coins[i];
+            const dx = (player.x + player.width/2) - c.x; const dy = (player.y + player.height/2) - c.y;
+            if (Math.hypot(dx,dy) < player.width/2 + c.r) { coins.splice(i,1); score+=50; scoreEl.innerText=score; }
+        }
+
+        if (player.y > canvas.height) gameEnd();
+    }
+
+    function render() {
+        ctx.fillStyle = COLOR.light; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.fillStyle = COLOR.ground; platforms.forEach(p => { ctx.fillRect(p.x,p.y,p.w,p.h); ctx.strokeStyle=COLOR.dark; ctx.lineWidth=2; ctx.strokeRect(p.x,p.y,p.w,p.h); });
+        ctx.fillStyle = COLOR.coin; coins.forEach(c => { ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill(); ctx.strokeStyle=COLOR.dark; ctx.stroke(); });
+        enemies.forEach(e => { ctx.fillStyle=COLOR.enemy; ctx.fillRect(e.x,e.y,e.w,e.h); ctx.fillStyle='#fff'; ctx.fillRect(e.x+4,e.y+6,6,6); ctx.fillRect(e.x+16,e.y+6,6,6); });
+        ctx.fillStyle=COLOR.primary; ctx.fillRect(player.x+4,player.y,24,16); ctx.fillRect(player.x,player.y+12,32,8);
+        ctx.fillStyle=COLOR.dark; ctx.fillRect(player.x+8,player.y+16,4,4); ctx.fillRect(player.x+18,player.y+16,4,4);
+        ctx.fillStyle=COLOR.secondary; ctx.fillRect(player.x+4,player.y+20,24,12);
+        ctx.fillStyle=COLOR.primary; ctx.fillRect(player.x,player.y+32,12,8); ctx.fillRect(player.x+20,player.y+32,12,8);
+    }
+
+    gameLoop();
+</script>
+<script>
+// 在线人数
+function updateOnline() { fetch('/online.php').catch(()=>{}); }
+updateOnline(); setInterval(updateOnline,5000);
+window.addEventListener('beforeunload',()=>{ navigator.sendBeacon('/online.php?act=leave'); });
+</script>
+</body>
+</html>
+

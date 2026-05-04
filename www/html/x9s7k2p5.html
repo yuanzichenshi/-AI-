@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>↑↑↓↓←→←→BA +30HP | your name</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A6C8C',
+                        secondary: '#7B8EA5',
+                        dark: '#2C3E50',
+                        light: '#E8EDF2'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300,400,500,700&display=swap');
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F5F7FA;
+            overflow-x: hidden;
+        }
+        .img-card {
+            transition: all 0.3s ease;
+        }
+        .img-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(44, 62, 80, 0.15);
+        }
+        .preview-img {
+            cursor: pointer;
+        }
+        .img-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            z-index: 99;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .img-mask img {
+            max-width: 90%;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8">
+
+<div class="max-w-lg mx-auto mb-6 flex flex-wrap justify-center gap-2 text-sm">
+    <a href="w2.html" class="px-3 py-1 bg-light text-primary rounded">联系</a>
+    <a href="w3.html" class="px-3 py-1 bg-light text-primary rounded">Steam</a>
+    <a href="w4.html" class="px-3 py-1 bg-light text-primary rounded">Github</a>
+    <a href="w5.html" class="px-3 py-1 bg-light text-primary rounded">邮箱</a>
+    <a href="w6.html" class="px-3 py-1 bg-light text-primary rounded">作品</a>
+    <a href="w7.html" class="px-3 py-1 bg-primary text-white rounded">返回游戏</a>
+</div>
+
+<div class="w-full max-w-4xl bg-white rounded-2xl overflow-hidden mx-auto p-6">
+    <h2 class="text-xl font-bold text-primary text-center mb-6">隐藏图集 L1-L9</h2>
+
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-4" id="imgContainer">
+        加载中...
+    </div>
+</div>
+
+<div id="imgMask" class="img-mask hidden" onclick="closePreview()">
+    <img id="bigImg" src="" alt="大图预览">
+</div>
+
+<script>
+const imgList = [];
+for(let i = 1; i <= 9; i++){
+    imgList.push({
+        src: `/files/l${i}.png`,
+        name: `l${i}.png`
+    });
+}
+
+const container = document.getElementById('imgContainer');
+const imgMask = document.getElementById('imgMask');
+const bigImg = document.getElementById('bigImg');
+
+let html = '';
+imgList.forEach((item, idx) => {
+    html += `
+    <div class="img-card bg-light rounded-xl p-3">
+        <img src="${item.src}" 
+             class="preview-img w-full rounded-lg object-cover mb-2" 
+             alt="L${idx+1}"
+             onclick="openPreview('${item.src}')">
+        <div class="flex items-center justify-between">
+            <span class="text-secondary text-sm">L${idx+1}</span>
+            <a href="${item.src}" download="${item.name}" 
+               class="text-primary text-sm flex items-center gap-1 hover:underline">
+                <i class="fa fa-download"></i> 下载
+            </a>
+        </div>
+    </div>
+    `;
+});
+container.innerHTML = html;
+
+function openPreview(src){
+    bigImg.src = src;
+    imgMask.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+function closePreview(){
+    imgMask.classList.add('hidden');
+    document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') closePreview();
+});
+</script>
+
+</body>
+</html>
+

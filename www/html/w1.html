@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>your name | 个人名片</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A6C8C',
+                        secondary: '#7B8EA5',
+                        dark: '#2C3E50',
+                        light: '#E8EDF2'
+
+                    },
+                    fontFamily: { sans: ['Noto Sans SC', 'sans-serif'] }
+                }
+
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        body { 
+            font-family: 'Noto Sans SC', sans-serif; 
+            background: #F5F7FA;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 电脑端：左右背景图 */
+        .bg-img {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            width: 40%;
+            z-index: -1;
+            background-size: cover;
+            background-position: center;
+        }
+        .bg-left { left: 0; }
+        .bg-right { right: 0; }
+
+        /* 手机端：全屏单张背景 */
+        .bg-mobile {
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            background-size: cover;
+            background-position: center;
+            background-image: url('/files/y1.png');
+            display: none;
+        }
+
+        .main-title { letter-spacing: 12px; transition: 0.4s; cursor: pointer; }
+        .main-title:hover { letter-spacing: 16px; transform: translateY(-5px); }
+        .social-item { 
+            display: flex; align-items: center; justify-content: center; 
+            transition: 0.3s;
+        }
+        .social-item:hover { transform: translateY(-8px); }
+        .work-btn { transition: 0.3s; }
+        .work-btn:hover { transform: translateY(-3px); }
+        #secretInput {
+            opacity: 0; height: 0; transition: 0.3s;
+            border: none; outline: none; text-align: center;
+        }
+        #secretInput.show {
+            opacity: 1; height: auto;
+            padding: 10px 16px;
+            border: 2px solid #4A6C8C;
+            border-radius: 12px;
+            margin-bottom: 16px;
+        }
+        /* 右上角时间 */
+        #timeBox {
+            position: absolute;
+            top: 12px;
+            right: 16px;
+            font-size: 14px;
+            color: #4A6C8C;
+            font-weight: 500;
+            z-index: 10;
+        }
+        /* 卡片外圈模糊光晕 */
+        .card-wrap {
+            filter: drop-shadow(0 0 28px rgba(74, 108, 140, 0.35));
+            border-radius: 16px;
+        }
+        /* 左上角问号按钮 —— 缩小版 */
+        .help-btn {
+            position: absolute;
+            top: 14px;
+            left: 16px;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #4A6C8C;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4A6C8C;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.3s;
+            z-index: 20;
+        }
+        .help-btn:hover {
+            background: #4A6C8C;
+            color: #fff;
+        }
+        /* 遮罩弹窗 */
+        .modal-mask {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+        }
+        /* 电脑端大弹窗 */
+        .modal-box {
+            background: #fff;
+            padding: 50px 60px;
+            min-width: 380px;
+            border-radius: 20px;
+            text-align: center;
+            color: #2C3E50;
+            line-height: 2.4;
+            font-size: 18px;
+            position: relative;
+        }
+        .modal-title {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #4A6C8C;
+        }
+        /* 手机端弹窗自动缩小 */
+        @media (max-width: 768px) {
+            .modal-box {
+                padding: 30px 35px;
+                min-width: unset;
+                width: 80%;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-4 py-8">
+
+<!-- 弹窗遮罩 -->
+<div class="modal-mask" id="modalMask">
+    <div class="modal-box">
+        <div class="modal-title">INFO</div>
+        <div>Power by DouBao</div>
+        <div>your name！</div>
+        <div>纯AI，零人工</div>
+    </div>
+</div>
+
+<!-- 手机端专用背景（默认隐藏） -->
+<div class="bg-mobile" id="bgMobile"></div>
+
+<!-- 电脑端左右随机图 -->
+<div class="bg-img bg-left" id="bgLeft"></div>
+<div class="bg-img bg-right" id="bgRight"></div>
+
+<!-- 卡片 -->
+<div class="w-full max-w-lg card-wrap relative">
+    <!-- 左上角问号按钮 -->
+    <div class="help-btn" id="helpBtn">
+        <i class="fa fa-question"></i>
+    </div>
+
+    <div id="cardBody" class="rounded-2xl shadow overflow-hidden relative">
+        <!-- 右上角时间 -->
+        <div id="timeBox">加载时间...</div>
+
+        <div class="h-2 bg-gradient-to-r from-primary to-secondary w-full"></div>
+        <div class="py-12 px-8 text-center">
+
+            <h1 id="mainTitle" class="main-title text-[clamp(2.5rem,8vw,4rem)] font-bold text-dark mb-6">
+
+                your name
+            </h1>
+
+            <input id="secretInput" class="w-full text-lg" placeholder="想来点游戏吗？讨厌微软吗？">
+
+            <p class="text-secondary text-lg mb-1">嘉豪语录</p>
+            <p id="onlineText" class="text-secondary my-4">在线人数：加载中...</p>
+            <p id="overTip" class="text-red-500 mb-4 hidden">(っ°Д°;)っ 位置已经挤爆啦！</p>
+
+            <div class="w-24 h-0.5 bg-primary/30 mx-auto mb-10"></div>
+            <a href="/w6.html" class="work-btn px-8 py-3 bg-primary text-white rounded-full mb-10 inline-block">
+                <i class="fa fa-film mr-2"></i>我的作品
+            </a>
+
+            <div class="space-y-4 mb-12">
+                <p class="flex items-center justify-center gap-2"><i class="fa fa-user-o text-primary"></i> 自由职业者</p>
+                <p class="flex items-center justify-center gap-2"><i class="fa fa-map-marker-o text-primary"></i> 嘉豪语录</p>
+            </div>
+
+            <div class="flex justify-center gap-6">
+                <!-- 已换成微信图标 -->
+                <a href="/w2.html" class="social-item w-12 h-12 rounded-full bg-light text-primary hover:bg-primary hover:text-white"><i class="fa fa-weixin"></i></a>
+                <a href="/w3.html" class="social-item w-12 h-12 rounded-full bg-light text-primary hover:bg-primary hover:text-white"><i class="fa fa-steam"></i></a>
+                <a href="/w4.html" class="social-item w-12 h-12 rounded-full bg-light text-primary hover:bg-primary hover:text-white"><i class="fa fa-github"></i></a>
+                <a href="/w5.html" class="social-item w-12 h-12 rounded-full bg-light text-primary hover:bg-primary hover:text-white"><i class="fa fa-envelope-o"></i></a>
+            </div>
+        </div>
+        <div class="py-4 bg-light text-center text-sm text-secondary">© 2026 your name</div>
+    </div>
+</div>
+
+<script>
+    // 弹窗逻辑
+    const helpBtn = document.getElementById('helpBtn');
+
+    const modalMask = document.getElementById('modalMask');
+    helpBtn.addEventListener('click', () => {
+        modalMask.style.display = 'flex';
+
+    });
+    // 点击遮罩关闭
+    modalMask.addEventListener('click', (e) => {
+
+        if(e.target === modalMask){
+
+            modalMask.style.display = 'none';
+
+        }
+    });
+
+    // 设备自动判断：电脑 / 手机
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const bgLeft = document.getElementById('bgLeft');
+    const bgRight = document.getElementById('bgRight');
+    const bgMobile = document.getElementById('bgMobile');
+    const cardBody = document.getElementById('cardBody');
+
+    if (isMobile) {
+        // 手机端：隐藏左右图 → 显示全屏 y1.png → 卡片更高不透明
+        bgLeft.style.display = 'none';
+        bgRight.style.display = 'none';
+        bgMobile.style.display = 'block';
+        cardBody.style.backgroundColor = 'rgba(255, 255, 255, 0.75)';
+        cardBody.style.backdropFilter = 'blur(10px)';
+        cardBody.style.webkitBackdropFilter = 'blur(10px)';
+    } else {
+
+        // 电脑端：正常随机左右图 + 白色卡片
+
+        cardBody.style.backgroundColor = '#ffffff';
+
+        // 左边随机 y1 / y3
+        const leftImgs = ["/files/y1.png", "/files/y3.png"];
+        // 右边随机 y2 / y4
+        const rightImgs = ["/files/y2.png", "/files/y4.png"];
+        const randLeft = leftImgs[Math.floor(Math.random() * leftImgs.length)];
+        const randRight = rightImgs[Math.floor(Math.random() * rightImgs.length)];
+        bgLeft.style.backgroundImage = `url(${randLeft})`;
+        bgRight.style.backgroundImage = `url(${randRight})`;
+    }
+
+    // 原有功能全部保留
+    const MAX_LIMIT = 21;
+    const mainTitle = document.getElementById('mainTitle');
+    const secretInput = document.getElementById('secretInput');
+    const onlineText = document.getElementById('onlineText');
+    const overTip = document.getElementById('overTip');
+    const timeBox = document.getElementById('timeBox');
+    
+    const target1 = 'havesomegame';
+    const target2 = 'fuckmicrosoft';
+    const target3 = 'birthday';
+
+    mainTitle.addEventListener('dblclick', () => {
+        secretInput.classList.add('show');
+        secretInput.value = '';
+        secretInput.focus();
+    });
+
+    secretInput.addEventListener('input', () => {
+
+        const v = secretInput.value.trim().toLowerCase();
+        if(v === target1) location.href = '/w7.html';
+        if(v === target2) location.href = '/w8.html';
+        if(v === target3) location.href = '/w9.html';
+    });
+
+    function updateTime() {
+        let date = new Date();
+        let hh = String(date.getHours()).padStart(2, '0');
+        let mm = String(date.getMinutes()).padStart(2, '0');
+
+        let ss = String(date.getSeconds()).padStart(2, '0');
+        timeBox.textContent = `${hh}:${mm}:${ss}`;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    function updateOnline() {
+        fetch('/online.php')
+            .then(res => res.text())
+
+            .then(cnt => {
+                onlineText.textContent = `在线人数：${cnt} / ${MAX_LIMIT}`;
+                if (parseInt(cnt) > MAX_LIMIT) {
+                    onlineText.classList.add('text-red-500','font-bold');
+                    overTip.classList.remove('hidden');
+                } else {
+                    onlineText.classList.remove('text-red-500','font-bold');
+
+                    overTip.classList.add('hidden');
+                }
+            });
+    }
+
+    window.addEventListener('beforeunload', () => {
+        fetch('/online.php?act=leave', { keepalive: true });
+
+    });
+
+    updateOnline();
+    setInterval(updateOnline, 5000);
+</script>
+</body>
+</html>
+

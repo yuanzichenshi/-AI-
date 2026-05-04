@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>微信 | your name</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4A6C8C',
+                        secondary: '#7B8EA5',
+                        dark: '#2C3E50',
+                        light: '#E8EDF2'
+                    },
+                    fontFamily: {
+                        sans: ['Noto Sans SC', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 4px 12px rgba(44, 62, 80, 0.2);
+            }
+            .bg-gradient-blue-gray {
+                background: linear-gradient(135deg, #4A6C8C 0%, #7B8EA5 100%);
+            }
+            .card-shadow {
+                box-shadow: 0 10px 30px rgba(44, 62, 80, 15%);
+            }
+        }
+    </style>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background-color: #F5F7FA;
+        }
+        
+        .back-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .back-btn:hover {
+            transform: translateX(-3px);
+        }
+        .tel-copy {
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s;
+        }
+        .tel-copy:hover {
+            color: #4A6C8C;
+        }
+    </style>
+</head>
+<body class="min-h-screen px-4 py-8">
+
+<!-- 顶部导航：当前页改为刷新，无自身跳转 -->
+<div class="max-w-lg mx-auto mb-6 flex flex-wrap justify-center gap-2 text-sm">
+    <span onclick="location.reload()" class="px-3 py-1 bg-primary text-white rounded cursor-pointer">刷新</span>
+    <a href="w3.html" class="px-3 py-1 bg-light text-primary rounded">Steam</a>
+    <a href="w4.html" class="px-3 py-1 bg-light text-primary rounded">Github</a>
+    <a href="w5.html" class="px-3 py-1 bg-light text-primary rounded">邮箱</a>
+    <a href="w6.html" class="px-3 py-1 bg-light text-primary rounded">作品</a>
+</div>
+
+<div class="w-full max-w-lg bg-white rounded-2xl card-shadow overflow-hidden mx-auto">
+    <div class="h-2 bg-gradient-blue-gray w-full"></div>
+    <div class="py-12 px-8 text-center">
+        <a href="/w1.html" class="back-btn flex items-center gap-2 text-primary mb-8">
+            <i class="fa fa-arrow-left"></i>
+            <span>返回主页</span>
+        </a>
+        <i class="fa fa-weixin text-5xl text-primary mb-6"></i>
+        <h1 class="text-[clamp(1.8rem,5vw,2.5rem)] font-bold text-dark mb-4 text-shadow">
+            微信
+        </h1>
+        <p id="telNum" class="tel-copy text-secondary text-xl mb-8 tracking-wider">
+            微信号
+        </p>
+        <span id="copyTip" class="hidden text-sm text-green-500 mb-4 block">已复制微信号 ✔</span>
+
+        <button onclick="openWX()" class="inline-block px-8 py-3 bg-primary text-white rounded-full hover:bg-dark transition-all">
+            添加好友
+        </button>
+    </div>
+    <div class="py-4 bg-light text-center text-sm text-secondary">
+        © 2026 yourname | All Rights Reserved
+    </div>
+</div>
+
+<script>
+const telNum = document.getElementById('telNum');
+const copyTip = document.getElementById('copyTip');
+const wechatId = 'wechat id';
+
+// 点击复制微信号
+telNum.addEventListener('click', () => {
+    navigator.clipboard.writeText(wechatId).then(() => {
+        copyTip.classList.remove('hidden');
+        setTimeout(() => copyTip.classList.add('hidden'), 2000);
+    });
+});
+
+// 安全唤起微信不闪退
+function openWX() {
+    // 尝试唤起微信
+    window.location.href = "weixin://";
+    // 唤起失败提示手动搜索
+    setTimeout(()=>{
+        alert("已复制微信号，请打开微信 → 添加朋友 → 搜索：" + wechatId);
+    }, 600);
+}
+
+// 在线人数统计（全页面生效）
+function updateOnline(){fetch('/online.php').catch(()=>{});}
+updateOnline();
+setInterval(updateOnline,5000);
+window.addEventListener('beforeunload',()=>{navigator.sendBeacon('/online.php?act=leave');});
+</script>
+
+</body>
+</html>
+

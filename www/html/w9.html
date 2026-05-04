@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>flowers?</title>
+<style>
+* {margin:0;padding:0;box-sizing:border-box;}
+body {
+    background:#000;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+#imgBox {
+    max-width:100vw;
+    max-height:100vh;
+}
+#pic {
+    max-width:100%;
+    max-height:90vh;
+    display:block;
+    /* 取消所有过渡动画 */
+    transition:none;
+    transform:scale(1);
+}
+.btns {
+    margin-top:30px;
+    display:flex;
+    gap:20px;
+}
+button {
+    padding:10px 20px;
+    font-size:16px;
+    cursor:pointer;
+}
+.tip {
+    color:#fff;
+    margin-bottom:15px;
+    font-size: 18px;
+}
+</style>
+</head>
+<body>
+<div class="tip" id="tip">图片：<span id="name">s10.png</span></div>
+
+<div id="imgBox">
+    <img id="pic" src="s10.png">
+</div>
+
+<div class="btns">
+    <button id="btnBig">放大</button>
+    <button id="btnSmall">缩小</button>
+</div>
+
+<script>
+let idx = 10;
+const pic = document.getElementById('pic');
+const nameSpan = document.getElementById('name');
+const tip = document.getElementById('tip');
+const maxNum = 10;
+const minNum = 1;
+
+// 生日倒计时计算
+function getBirthdayText() {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    let birthday = new Date(currentYear, 0, 0); // 7月28日（月份0开始）
+
+    // 如果今年生日已过，算明年
+    if (now > birthday) {
+        birthday = new Date(currentYear + 1, 0, 0);
+    }
+
+    // 计算相差天数
+    const diffTime = birthday - now;
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (days === 0) {
+        return "🎉 生日快乐！";
+    } else {
+        return `距离生日还有 ${days} 天`;
+    }
+}
+
+function update(){
+    pic.src = `s${idx}.png`;
+    nameSpan.innerText = `s${idx}.png`;
+    
+    // 只有到最后一张 s1 时显示生日倒计时
+    if (idx === 1) {
+        tip.innerHTML = getBirthdayText();
+    } else {
+        tip.innerHTML = `当前：<span id="name">s${idx}.png</span>`;
+    }
+}
+
+// 放大：s10→s9→…→s1 到顶不再动
+document.getElementById('btnBig').onclick = function(){
+    if(idx > minNum){
+        idx--;
+        update();
+    }
+};
+
+// 缩小：s1→s2→…→s10 到底不再动
+document.getElementById('btnSmall').onclick = function(){
+    if(idx < maxNum){
+        idx++;
+        update();
+    }
+};
+
+update(); // 初始化
+</script>
+
+<script>
+// 在线人数统计（所有页面都生效）
+function updateOnline() {
+    fetch('/online.php').catch(err => {});
+}
+
+// 页面加载时上报在线
+updateOnline();
+
+// 定时心跳（保持在线）
+setInterval(updateOnline, 5000);
+
+// 关闭页面时离开
+window.addEventListener('beforeunload', () => {
+    navigator.sendBeacon('/online.php?act=leave');
+});
+</script>
+
+</body>
+</html>
+
